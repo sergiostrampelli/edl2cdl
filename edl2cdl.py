@@ -19,7 +19,7 @@
 ##                                              ##
 ##################################################
 #!/usr/bin/env python 
-_version = "1.2"
+_version = "1.2.1"
 import os
 import re
 import sys
@@ -86,6 +86,7 @@ else:
 camre = re.compile(r"[*]\sFROM\sCLIP\sNAME:\s+.*(?P<name>[A-Z][0-9]{3}[_]?C[0-9]{3})")
 camre0 = re.compile(r"[*]\sFROM\sCLIP\sNAME:\s+(?P<name>.{63})")
 camre1 = re.compile(r"[*]\s(?P<name>.*)")
+reelre = re.compile(r"[*]\sREEL:\s+(?P<reelname>.*)")
 input_desc, viewing_desc = None, "EDL2CDL script by Walter Arrighetti"
 tapere = re.compile(r"[*]\sFROM\sCLIP\sNAME:\s+(?P<name>[A-Za-z0-9-_,.]|\s{8,32})")
 cdl1re = re.compile(r"[*]\sASC[_]SOP\s+[(]\s?(?P<sR>[-]?\d+[.]\d{4,6})\s+(?P<sG>[-]?\d+[.]\d{4,6})\s+(?P<sB>[-]?\d+[.]\d{4,6})\s?[)]\s?[(]\s?(?P<oR>[-]?\d+[.]\d{4,6})\s+(?P<oG>[-]?\d+[.]\d{4,6})\s+(?P<oB>[-]?\d+[.]\d{4,6})\s?[)]\s?[(]\s?(?P<pR>[-]?\d+[.]\d{4,6})\s+(?P<pG>[-]?\d+[.]\d{4,6})\s+(?P<pB>[-]?\d+[.]\d{4,6})\s?[)]\s?")
@@ -94,6 +95,7 @@ cdl2re = re.compile(r"[*]\sASC[_]SAT\s+(?P<sat>\d+[.]\d{4,6})")
 ln = 0
 
 CCC, IDs = [], []
+REELs = {}
 
 def writeCDL(CCCid, SOPnode, SATnode):
 	CCC.append( {
@@ -124,6 +126,14 @@ for n in range(len(EDL)):
 			thisCDL, thisSAT = None, 0
 		tapename = L.group("name")
 		if tapename in IDs:	tapename, CDLevent = None, False
+	elif tapename and reelre.match(line):
+		print REELs
+		L = reelre.match(line)
+		reelname = L.group("reelname")
+		if reelname in REELs.values():
+			print " * WARNING!: Duplicated reel name \"%s\" for tape name \"%s\"."%(reelname,tapename)
+		else:
+			REELs[tapename] = L.group("reelname")
 	elif camre0.match(line) and n<len(EDL)-1 and camre1.match(EDL[n+1]):
 		n += 1
 		line = line + camre1.match(EDL[n]).group("name")
@@ -187,7 +197,10 @@ if useCCC=="CCC":
 	print " * %d CDL(s) written in CCC file \"%s\""%(len(CCC),os.path.split(outfile)[1])
 elif useCCC in ["CC","CDL"]:
 	for n in range(len(CCC)):
-		outfile = os.path.join(outpath,CCC[n]['id'])
+		if CCC[n]['id'] in REELs:
+			outfile = os.path.join(outpath,REELs[CCC[n]['id']])	
+		else:
+			outfile = os.path.join(outpath,CCC[n]['id'])
 		if useCCC=="CDL":	outfile += ".cdl"
 		else:	outfile += ".cc"
 		try:	CDLout = open(outfile,"w")

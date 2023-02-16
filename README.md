@@ -9,7 +9,7 @@ This tool is for converting color-correction metadata for advanced theatrical/te
 
 Since the original ClipName name is transformed into a CCCid and the on-set color-correction usually includes just one version/grade per clip shot, no multiple CDLs are extracted from a single ClipName/TapeName.
 The only parameter that can be passed is either `--ccc` (*default* if not explicitly defined) or `--cdl` or `--cc` to specify the corresponding output format. Other than that a first mandatory argument is the pathname of the input EDL file. Optionally a foldername or a filename can be specified as argument (the script intelligently parses the output pathname guessing its use according to different output format). Individual EDL/CC files are generated in a separate folder (that keeps the EDL name, without extension, by default); the single CCC file is by default generated in the same folder (and with the same name) of the EDL file.
-If a "REEL: <reelname>" line is present, the CDL/CC files are named after the reelname.
+If a "REEL: reelname" line is present, the CDL/CC files are named after the reelname.
 
 
 ## Details on ASC CDL
